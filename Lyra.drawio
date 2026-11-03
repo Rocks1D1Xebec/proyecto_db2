@@ -1,0 +1,105 @@
+<mxfile host="Electron">
+  <diagram name="ERD - Lyra" id="UMvnb8lY80B-o6uYAFx2">
+    <mxGraphModel dx="343" dy="209" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="900" pageHeight="750" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=14;fontColor=#000000;fontStyle=0" value="&lt;span&gt;DIAGRAMA ENTIDAD - RELACIÓN (DER)&lt;/span&gt;" vertex="1">
+          <mxGeometry height="30" width="290" x="305" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="e_usuario" parent="1" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;" value="usuario" vertex="1">
+          <mxGeometry height="147" width="240" x="70" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="u_1" parent="e_usuario" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=8;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontStyle=4;fontColor=#000000;" value="PK | id : INT UNSIGNED" vertex="1">
+          <mxGeometry height="26" width="240" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="u_2" parent="e_usuario" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=8;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontColor=#000000;fontStyle=0" value="     nombre : VARCHAR(50) [UQ, NOT NULL]" vertex="1">
+          <mxGeometry height="39" width="240" y="52" as="geometry" />
+        </mxCell>
+        <mxCell id="u_3" parent="e_usuario" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=8;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontColor=#000000;fontStyle=0" value="     correo : VARCHAR(50) [UQ, NOT NULL]" vertex="1">
+          <mxGeometry height="26" width="240" y="91" as="geometry" />
+        </mxCell>
+        <mxCell id="u_4" parent="e_usuario" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=8;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontColor=#000000;fontStyle=0" value="     contraseña : VARCHAR(250) [NOT NULL]" vertex="1">
+          <mxGeometry height="30" width="240" y="117" as="geometry" />
+        </mxCell>
+        <mxCell id="e_artista" parent="1" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;" value="artista" vertex="1">
+          <mxGeometry height="102" width="240" x="590" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="a_1" parent="e_artista" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=8;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontStyle=4;fontColor=#000000;" value="PK | id : INT UNSIGNED" vertex="1">
+          <mxGeometry height="38" width="240" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="a_2" parent="e_artista" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=8;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontColor=#000000;fontStyle=0" value="     nombre : VARCHAR(100) [UQ, NOT NULL]" vertex="1">
+          <mxGeometry height="38" width="240" y="64" as="geometry" />
+        </mxCell>
+        <mxCell id="e_lista" parent="1" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;" value="lista" vertex="1">
+          <mxGeometry height="120" width="240" x="70" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="l_1" parent="e_lista" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=8;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontStyle=4;fontColor=#000000;" value="PK | id : INT UNSIGNED" vertex="1">
+          <mxGeometry height="30" width="240" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="l_2" parent="e_lista" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=8;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontColor=#000000;fontStyle=0" value="     nombre : VARCHAR(100) [NOT NULL]" vertex="1">
+          <mxGeometry height="26" width="240" y="56" as="geometry" />
+        </mxCell>
+        <mxCell id="l_3" parent="e_lista" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=8;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontColor=#000000;fontStyle=4;" value="FK | id_usuario : INT UNSIGNED [NOT NULL]" vertex="1">
+          <mxGeometry height="38" width="240" y="82" as="geometry" />
+        </mxCell>
+        <mxCell id="e_cancion" parent="1" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;" value="cancion" vertex="1">
+          <mxGeometry height="194" width="250" x="590" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="c_1" parent="e_cancion" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=8;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontStyle=4;fontColor=#000000;" value="PK | id : INT UNSIGNED" vertex="1">
+          <mxGeometry height="26" width="250" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="c_2" parent="e_cancion" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=8;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontColor=#000000;fontStyle=0" value="     titulo : VARCHAR(100)" vertex="1">
+          <mxGeometry height="26" width="250" y="52" as="geometry" />
+        </mxCell>
+        <mxCell id="c_3" parent="e_cancion" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=8;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontColor=#000000;fontStyle=0" value="     id_youtube : VARCHAR(50) [UQ, NOT NULL]" vertex="1">
+          <mxGeometry height="32" width="250" y="78" as="geometry" />
+        </mxCell>
+        <mxCell id="c_4" parent="e_cancion" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=8;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontColor=#000000;fontStyle=4;" value="FK | id_artista : INT UNSIGNED [NOT NULL]" vertex="1">
+          <mxGeometry height="32" width="250" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="c_5" parent="e_cancion" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=8;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontColor=#000000;fontStyle=0" value="     duracion : INT UNSIGNED [NOT NULL]" vertex="1">
+          <mxGeometry height="26" width="250" y="142" as="geometry" />
+        </mxCell>
+        <mxCell id="c_6" parent="e_cancion" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=8;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontColor=#000000;fontStyle=0" value="     link_r2 : TEXT [NOT NULL]" vertex="1">
+          <mxGeometry height="26" width="250" y="168" as="geometry" />
+        </mxCell>
+        <mxCell id="e_detalle" parent="1" style="swimlane;fontStyle=0;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;" value="detalle_lista" vertex="1">
+          <mxGeometry height="130" width="240" x="330" y="520" as="geometry" />
+        </mxCell>
+        <mxCell id="d_1" parent="e_detalle" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=8;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontStyle=4;fontColor=#000000;" value="PK | id : INT UNSIGNED" vertex="1">
+          <mxGeometry height="26" width="240" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="d_2" parent="e_detalle" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=8;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontColor=#000000;fontStyle=4;" value="FK | id_lista : INT UNSIGNED [NOT NULL]" vertex="1">
+          <mxGeometry height="26" width="240" y="52" as="geometry" />
+        </mxCell>
+        <mxCell id="d_3" parent="e_detalle" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=8;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontColor=#000000;fontStyle=4;" value="FK | id_cancion : INT UNSIGNED [NOT NULL]" vertex="1">
+          <mxGeometry height="26" width="240" y="78" as="geometry" />
+        </mxCell>
+        <mxCell id="d_4" parent="e_detalle" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=8;spacingRight=8;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontColor=#555555;fontStyle=2;" value="UQ | (id_lista, id_cancion)" vertex="1">
+          <mxGeometry height="26" width="240" y="104" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_usuario_lista" edge="1" parent="1" source="e_usuario" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeWidth=1;strokeColor=#000000;labelBackgroundColor=#FFFFFF;fontColor=#000000;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;fontStyle=0" target="e_lista" value="1 : N">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_artista_cancion" edge="1" parent="1" source="e_artista" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeWidth=1;strokeColor=#000000;labelBackgroundColor=#FFFFFF;fontColor=#000000;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;fontStyle=0" target="e_cancion" value="1 : N">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rel_lista_detalle" edge="1" parent="1" source="e_lista" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=1;strokeColor=#000000;labelBackgroundColor=#FFFFFF;fontColor=#000000;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;fontStyle=0" target="e_detalle" value="1 : N">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="190" y="585" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rel_cancion_detalle" edge="1" parent="1" source="e_cancion" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=1;strokeColor=#000000;labelBackgroundColor=#FFFFFF;fontColor=#000000;startArrow=ERone;startFill=0;endArrow=ERmany;endFill=0;fontStyle=0" target="e_detalle" value="1 : N">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="715" y="585" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
