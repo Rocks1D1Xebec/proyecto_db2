@@ -11,29 +11,17 @@
 
 ---
 
-## Tecnologias Previstas a Usar
+## Tecnologías
 
-### 1. Backend
-- **Python:** Lenguaje principal de programacion para la logica del servidor.
-- **Framework Web (FastAPI / Flask):** Para construir la API REST, gestionar rutas de autenticacion, listas y servir peticiones al frontend.
-
-### 2. Frontend (Interfaz Web)
-- **HTML5:** Estructura de las vistas y uso de la etiqueta semantica de audio para streaming.
-- **CSS3:** Maquetacion, diseño visual moderno y adaptacion responsiva.
-- **JavaScript (Vanilla JS):** Control de eventos del reproductor (play, pause, barra de progreso), reproduccion continua en segundo plano y comunicacion asincrona con el backend mediante API Fetch (AJAX) sin recargar la pagina.
-
-### 3. Procesamiento Multimedia y Audio
-- **yt-dlp:** Libreria de Python para la extraccion de metadatos y captura del stream de audio desde YouTube / YouTube Music.
-- **FFmpeg:** Herramienta para la conversion, normalizacion y codificacion del audio a formato MP3 con bitrate optimizado.
-
-### 4. Almacenamiento de Archivos (Object Storage)
-- **Cloudflare R2:** Almacenamiento de objetos desacoplado en la nube para guardar los archivos MP3 (10 GB gratuitos).
-
-### 5. Base de Datos Relacional
-- **MySQL / PostgreSQL (Neon):** Motor de base de datos relacional para la persistencia de usuarios, credenciales, historial de logins, artistas, canciones, playlists e integridad referencial.
-
-### 6. Despliegue e Infraestructura
-- **Render:** Plataforma de alojamiento en la nube para el Web Service en produccion.
+| Área | Tecnología | Uso |
+| :--- | :--- | :--- |
+| Frontend | HTML5, CSS3 y JavaScript | Estructura, diseño e interacción de las páginas y control del reproductor. |
+| Backend | Python | Implementación de la lógica del servidor. |
+| Framework del backend | FastAPI / Flask | Organización de la aplicación, rutas, validaciones y acceso a datos. |
+| Base de datos | PostgreSQL / MySQL | Almacenamiento y gestión de la información relacional. |
+| Procesamiento de audio | yt-dlp y FFmpeg | Extracción de metadatos desde YouTube y conversión a MP3. |
+| Almacenamiento de archivos | Cloudflare R2 | Almacenamiento desacoplado en la nube para los archivos de audio MP3. |
+| Despliegue | Render | Alojamiento y despliegue del servicio web en producción. |
 
 ---
 
@@ -54,14 +42,19 @@ Al procesar un enlace de YouTube o YouTube Music, la libreria `yt-dlp` extrae la
 
 ## Entidades de la Base de Datos
 
-1. **`usuario` (Registro):** Cuentas de usuario registradas con credenciales protegidas y fecha de alta.
-2. **`login` (Inicio de Sesion):** Control y auditoria de accesos de cada usuario (fecha de ingreso, IP y estado).
-3. **`artista`:** Catalogo normalizado de artistas para evitar redundancia de texto.
-4. **`cancion`:** Metadatos tecnicos de las canciones (titulo, duracion, id de youtube, formato, usuario que la subio y enlace a Cloudflare R2).
-5. **`lista`:** Listas de reproduccion personalizadas creadas por los usuarios.
-6. **`detalle_lista`:** Tabla asociativa que resuelve la relacion Muchos a Muchos (N:M) entre listas y canciones con restriccion para evitar duplicados.
+1. **`usuario`:** Cuentas de usuario que centralizan credenciales (correo, contraseña), perfil (nombre) y auditoría (fecha de registro y último acceso).
+2. **`artista`:** Catálogo normalizado de artistas para evitar redundancia de texto.
+3. **`cancion`:** Metadatos técnicos de las canciones (título, duración, ID de YouTube, formato, usuario que la subió y enlace a Cloudflare R2).
+4. **`lista`:** Listas de reproducción personalizadas creadas por los usuarios.
+5. **`detalle_lista`:** Tabla asociativa que resuelve la relación Muchos a Muchos (N:M) entre listas y canciones con restricción para evitar duplicados.
+6. **`me_gusta`:** Registro de canciones marcadas como favoritas por cada usuario (relación N:M).
 
 ---
 
 ## Meta para el Primer Avance
-- Presentar el modelo de datos formal (diagrama relacional y script DDL `Lyra.sql`) debidamente normalizado con claves foraneas, restricciones de integridad y estructura para inicio de sesion y registro.
+- Presentar el modelo de datos formal (diagrama relacional y script DDL `Lyra.sql`) debidamente normalizado con claves foráneas, restricciones de integridad y estructura optimizada para usuarios y listas.
+
+## Justificaciones de la Base de Datos
+1. **Modificación de tablas (Unificación de Usuario):** Se descartó la división inicial de tres tablas (`registro`, `login` y `usuario`) en favor de una única tabla **`usuario`** por las siguientes razones:
+   - **Eliminación de redundancia y 3FN:** En el esquema previo, el campo `correo` estaba duplicado en dos tablas. En el modelo relacional, todos los atributos de una cuenta (`nombre`, `correo`, `contrasena`, `fecha_registro`, `ultimo_acceso`) dependen funcionalmente de la misma clave primaria (`id`), cumpliendo con la Tercera Forma Normal (3FN).
+   - **Distinción entre Proceso y Entidad:** "Registrarse" e "Iniciar sesión" son acciones o transacciones del sistema, no entidades independientes. La entidad real es el usuario.
