@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Iniciar Sesion - Lyra</title>
+</head>
+<body style="font-family: Arial, sans-serif; padding: 40px; background-color: #f9f9f9;">
+
+    <div style="background-color: #ffffff; border: 1px solid #cccccc; max-width: 350px; margin: 0 auto; padding: 20px;">
+        <h2 style="margin-top: 0; text-align: center;">Iniciar Sesion</h2>
+
+        <form onsubmit="hacerLogin(event)">
+            <p>
+                <label>Correo electronico:</label><br>
+                <input type="email" id="correo" style="width: 100%; box-sizing: border-box; padding: 6px;" required>
+            </p>
+            <p>
+                <label>Contraseña:</label><br>
+                <input type="password" id="clave" style="width: 100%; box-sizing: border-box; padding: 6px;" required>
+            </p>
+            <button type="submit" style="width: 100%; padding: 8px; background-color: #0066cc; color: white; border: none; cursor: pointer;">
+                Ingresar
+            </button>
+        </form>
+
+        <p id="aviso" style="color: red; font-size: 13px; text-align: center;"></p>
+
+        <hr>
+        <p style="font-size: 13px; text-align: center;">
+            No tienes cuenta? <a href="/registro">Registrate aqui</a><br><br>
+            <a href="/">Volver a la pagina principal</a>
+        </p>
+    </div>
+
+    <script>
+        async function hacerLogin(e) {
+            e.preventDefault();
+            let correo = document.getElementById("correo").value;
+            let clave = document.getElementById("clave").value;
+
+            try {
+                let respuesta = await fetch("/api/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ correo: correo, contraseña: clave })
+                });
+
+                let datos = await respuesta.json();
+
+                if (datos.status === "ok") {
+                    localStorage.setItem("usuario", JSON.stringify(datos.usuario));
+                    window.location.href = "/";
+                } else {
+                    document.getElementById("aviso").innerText = "Correo o contraseña incorrectos.";
+                }
+            } catch (error) {
+                document.getElementById("aviso").innerText = "Error al conectar con el servidor.";
+            }
+        }
+    </script>
+
+</body>
+</html>

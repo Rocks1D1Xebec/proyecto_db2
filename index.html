@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Lyra Music - Base de Datos II</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 20px; margin: 0;">
+
+    <!-- Encabezado y sesion de usuario -->
+    <div style="background-color: #ffffff; border: 1px solid #cccccc; padding: 15px; margin-bottom: 20px;">
+        <h1 style="margin: 0; font-size: 22px;">Lyra Music</h1>
+        <p style="margin: 5px 0 0 0; color: #555555; font-size: 13px;">Proyecto de Base de Datos II</p>
+        <hr>
+        <div id="barra-usuario" style="font-size: 14px;">
+            <span>Usuario: </span><b id="nombre-usuario">Invitado</b> | 
+            <a href="/login" id="link-login">Iniciar Sesion</a> | 
+            <a href="/registro" id="link-registro">Registrarse</a> | 
+            <a href="#" id="link-logout" onclick="cerrarSesion()" style="display: none;">Cerrar Sesion</a>
+        </div>
+    </div>
+
+    <!-- Formulario para subir cancion mediante enlace -->
+    <div style="background-color: #ffffff; border: 1px solid #cccccc; padding: 15px; margin-bottom: 20px;">
+        <h3 style="margin-top: 0;">Subir Cancion</h3>
+        <p style="font-size: 13px; color: #555555;">Pega el enlace de YouTube o YouTube Music para registrar la cancion en la base de datos:</p>
+        <form onsubmit="subirCancion(event)">
+            <input type="text" id="enlace-youtube" placeholder="https://www.youtube.com/watch?v=..." style="width: 70%; padding: 6px; box-sizing: border-box;" required>
+            <button type="submit" id="btn-subir" style="padding: 6px 12px; background-color: #0066cc; color: white; border: none; cursor: pointer;">
+                Subir Cancion
+            </button>
+        </form>
+        <p id="aviso-subir" style="font-size: 13px; margin-bottom: 0;"></p>
+    </div>
+
+    <!-- Mis Listas de Reproduccion -->
+    <div style="background-color: #ffffff; border: 1px solid #cccccc; padding: 15px; margin-bottom: 20px;">
+        <h3 style="margin-top: 0;">Mis Listas de Reproduccion</h3>
+        
+        <div id="zona-sin-login-listas" style="font-size: 13px; color: #666666;">
+            Debes iniciar sesion para ver y crear tus listas de reproduccion.
+        </div>
+
+        <div id="zona-con-login-listas" style="display: none;">
+            <form onsubmit="crearNuevaLista(event)" style="margin-bottom: 15px;">
+                <label style="font-size: 13px;">Nueva lista: </label>
+                <input type="text" id="nombre-lista" placeholder="Ej: Favoritas, Estudio..." style="padding: 6px; width: 250px; box-sizing: border-box;" required>
+                <button type="submit" style="padding: 6px 12px; background-color: #28a745; color: white; border: none; cursor: pointer;">
+                    Crear Lista
+                </button>
+            </form>
+            <p id="aviso-lista" style="font-size: 13px;"></p>
+
+            <table border="1" cellpadding="6" cellspacing="0" style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                <thead>
+                    <tr style="background-color: #f2f2f2;">
+                        <th>Nombre de la Lista</th>
+                        <th>Total de Canciones</th>
+                        <th>Accion</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-listas">
+                    <tr><td colspan="3">Cargando listas...</td></tr>
+                </tbody>
+            </table>
+
+            <!-- Seccion para ver las canciones de la lista seleccionada -->
+            <div id="seccion-canciones-lista" style="margin-top: 15px; display: none; background-color: #fcfcfc; padding: 12px; border: 1px solid #e0e0e0;">
+                <h4 style="margin: 0 0 10px 0;">Canciones de: <span id="nombre-lista-activa" style="color: #0066cc;"></span></h4>
+                <table border="1" cellpadding="6" cellspacing="0" style="width: 100%; border-collapse: collapse; font-size: 13px; background-color: #ffffff;">
+                    <thead>
+                        <tr style="background-color: #efefef;">
+                            <th>Posicion</th>
+                            <th>Titulo</th>
+                            <th>Artista</th>
+                            <th>Duracion</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-detalle-lista">
+                        <tr><td colspan="4">Cargando canciones...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Catalogo general de canciones -->
+    <div style="background-color: #ffffff; border: 1px solid #cccccc; padding: 15px; margin-bottom: 20px;">
+        <h3 style="margin-top: 0;">Catalogo General de Canciones</h3>
+        <table border="1" cellpadding="6" cellspacing="0" style="width: 100%; border-collapse: collapse; font-size: 14px;">
+            <thead>
+                <tr style="background-color: #f2f2f2;">
+                    <th>Titulo</th>
+                    <th>Artista</th>
+                    <th>Duracion</th>
+                    <th>Accion</th>
+                </tr>
+            </thead>
+            <tbody id="tabla-catalogo">
+                <tr><td colspan="4">Cargando catalogo...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Canciones mas populares -->
+    <div style="background-color: #ffffff; border: 1px solid #cccccc; padding: 15px; margin-bottom: 20px;">
+        <h3 style="margin-top: 0;">Canciones Mas Populares</h3>
+        <table border="1" cellpadding="6" cellspacing="0" style="width: 100%; border-collapse: collapse; font-size: 14px;">
+            <thead>
+                <tr style="background-color: #f2f2f2;">
+                    <th>Posicion</th>
+                    <th>Titulo</th>
+                    <th>Artista</th>
+                    <th>Total Me Gusta</th>
+                </tr>
+            </thead>
+            <tbody id="tabla-populares">
+                <tr><td colspan="4">Cargando canciones populares...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        let usuarioActual = null;
+
+        // Se ejecuta al cargar la pagina en el navegador
+        window.onload = function() {
+            cargarSesion();
+            cargarCatalogo();
+            cargarPopulares();
+        };
+
+        // Verifica si hay sesion guardada en el navegador
+        function cargarSesion() {
+            let datos = localStorage.getItem("usuario");
+            if (datos) {
+                try {
+                    usuarioActual = JSON.parse(datos);
+                    document.getElementById("nombre-usuario").innerText = usuarioActual.nombre;
+                    document.getElementById("link-login").style.display = "none";
+                    document.getElementById("link-registro").style.display = "none";
+                    document.getElementById("link-logout").style.display = "inline";
+
+                    // Mostrar seccion de listas para el usuario conectado
+                    document.getElementById("zona-sin-login-listas").style.display = "none";
+                    document.getElementById("zona-con-login-listas").style.display = "block";
+                    cargarMisListas();
+                    return;
+                } catch (e) {
+                    usuarioActual = null;
+                }
+            }
+            document.getElementById("nombre-usuario").innerText = "Invitado";
+            document.getElementById("link-login").style.display = "inline";
+            document.getElementById("link-registro").style.display = "inline";
+            document.getElementById("link-logout").style.display = "none";
+            document.getElementById("zona-sin-login-listas").style.display = "block";
+            document.getElementById("zona-con-login-listas").style.display = "none";
+        }
+
+        // Cierra la sesion del usuario
+        function cerrarSesion() {
+            localStorage.removeItem("usuario");
+            window.location.reload();
+        }
+
+        // Obtiene las canciones del catalogo general (sin IDs ni subido por)
+        async function cargarCatalogo() {
+            try {
+                let res = await fetch("/api/catalogo");
+                let canciones = await res.json();
+                let tbody = document.getElementById("tabla-catalogo");
+                tbody.innerHTML = "";
+
+                if (!canciones || canciones.length === 0) {
+                    tbody.innerHTML = "<tr><td colspan='4'>No hay canciones registradas.</td></tr>";
+                    return;
+                }
+
+                for (let c of canciones) {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${c.titulo}</td>
+                            <td>${c.artista}</td>
+                            <td>${c.duracion} s</td>
+                            <td><button onclick="darLike(${c.id_cancion})" style="cursor: pointer;">Me gusta</button></td>
+                        </tr>
+                    `;
+                }
+            } catch (error) {
+                console.log("Error al cargar catalogo:", error);
+            }
+        }
+
+        // Obtiene las canciones mas votadas
+        async function cargarPopulares() {
+            try {
+                let res = await fetch("/api/populares");
+                let canciones = await res.json();
+                let tbody = document.getElementById("tabla-populares");
+                tbody.innerHTML = "";
+
+                if (!canciones || canciones.length === 0) {
+                    tbody.innerHTML = "<tr><td colspan='4'>No hay datos disponibles.</td></tr>";
+                    return;
+                }
+
+                let pos = 1;
+                for (let c of canciones) {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>#${pos}</td>
+                            <td>${c.titulo}</td>
+                            <td>${c.artista}</td>
+                            <td>${c.total_me_gusta}</td>
+                        </tr>
+                    `;
+                    pos++;
+                }
+            } catch (error) {
+                console.log("Error al cargar populares:", error);
+            }
+        }
+
+        // Obtiene las listas de reproduccion del usuario conectado (sin IDs visibles)
+        async function cargarMisListas() {
+            if (!usuarioActual) return;
+            try {
+                let res = await fetch("/api/listas?id_usuario=" + usuarioActual.id);
+                let listas = await res.json();
+                let tbody = document.getElementById("tabla-listas");
+                tbody.innerHTML = "";
+
+                if (!listas || listas.length === 0) {
+                    tbody.innerHTML = "<tr><td colspan='3'>No tienes listas creadas todavia.</td></tr>";
+                    return;
+                }
+
+                for (let l of listas) {
+                    let nombreEscapado = l.nombre.replace(/'/g, "\\'");
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><strong>${l.nombre}</strong></td>
+                            <td>${l.total_canciones} canciones</td>
+                            <td><button onclick="verCancionesLista(${l.id}, '${nombreEscapado}')" style="cursor: pointer;">Ver Canciones</button></td>
+                        </tr>
+                    `;
+                }
+            } catch (error) {
+                console.log("Error al cargar listas:", error);
+            }
+        }
+
+        // Muestra las canciones que pertenecen a una lista seleccionada (sin IDs)
+        async function verCancionesLista(idLista, nombreLista) {
+            let contenedor = document.getElementById("seccion-canciones-lista");
+            let nombreTitulo = document.getElementById("nombre-lista-activa");
+            let tbody = document.getElementById("tabla-detalle-lista");
+
+            nombreTitulo.innerText = nombreLista;
+            tbody.innerHTML = "<tr><td colspan='4'>Cargando...</td></tr>";
+            contenedor.style.display = "block";
+
+            try {
+                let res = await fetch("/api/listas/" + idLista + "/canciones");
+                let canciones = await res.json();
+                tbody.innerHTML = "";
+
+                if (!canciones || canciones.length === 0) {
+                    tbody.innerHTML = "<tr><td colspan='4'>Esta lista no tiene canciones todavia.</td></tr>";
+                    return;
+                }
+
+                for (let c of canciones) {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>#${c.posicion}</td>
+                            <td>${c.titulo}</td>
+                            <td>${c.artista}</td>
+                            <td>${c.duracion} s</td>
+                        </tr>
+                    `;
+                }
+            } catch (error) {
+                tbody.innerHTML = "<tr><td colspan='4'>Error al cargar las canciones de la lista.</td></tr>";
+            }
+        }
+
+        // Crea una nueva lista de reproduccion para el usuario
+        async function crearNuevaLista(e) {
+            e.preventDefault();
+            if (!usuarioActual) return;
+
+            let inputNombre = document.getElementById("nombre-lista");
+            let nombre = inputNombre.value.trim();
+            let aviso = document.getElementById("aviso-lista");
+
+            try {
+                let res = await fetch("/api/listas", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id_usuario: usuarioActual.id, nombre: nombre })
+                });
+
+                let datos = await res.json();
+                if (datos.status === "ok") {
+                    aviso.style.color = "green";
+                    aviso.innerText = "Lista creada exitosamente.";
+                    inputNombre.value = "";
+                    cargarMisListas();
+                    setTimeout(() => { aviso.innerText = ""; }, 3000);
+                } else {
+                    aviso.style.color = "red";
+                    aviso.innerText = "Error: " + (datos.mensaje || "no se pudo crear la lista.");
+                }
+            } catch (error) {
+                aviso.style.color = "red";
+                aviso.innerText = "Error de conexion al crear la lista.";
+            }
+        }
+
+        // Registra el Me gusta de un usuario para una cancion
+        async function darLike(idCancion) {
+            if (!usuarioActual) {
+                alert("Debes iniciar sesion para dar Me gusta.");
+                window.location.href = "/login";
+                return;
+            }
+
+            try {
+                let res = await fetch("/api/me-gusta", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id_usuario: usuarioActual.id, id_cancion: idCancion })
+                });
+                let datos = await res.json();
+                if (datos.status === "ok") {
+                    alert("Me gusta registrado.");
+                    cargarPopulares();
+                } else {
+                    alert("No se pudo registrar el Me gusta.");
+                }
+            } catch (error) {
+                alert("Error al conectar con el servidor.");
+            }
+        }
+
+        // Envia el enlace de YouTube para que el servidor procese la cancion
+        async function subirCancion(e) {
+            e.preventDefault();
+            if (!usuarioActual) {
+                alert("Debes iniciar sesion para poder subir una cancion.");
+                window.location.href = "/login";
+                return;
+            }
+
+            let enlace = document.getElementById("enlace-youtube").value;
+            let aviso = document.getElementById("aviso-subir");
+            let btn = document.getElementById("btn-subir");
+
+            btn.disabled = true;
+            aviso.style.color = "blue";
+            aviso.innerText = "Procesando enlace...";
+
+            try {
+                let res = await fetch("/api/subir", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ enlace: enlace, id_usuario: usuarioActual.id })
+                });
+
+                let datos = await res.json();
+                if (datos.status === "ok") {
+                    aviso.style.color = "green";
+                    aviso.innerText = "Cancion procesada y guardada correctamente.";
+                    document.getElementById("enlace-youtube").value = "";
+                    cargarCatalogo();
+                    cargarPopulares();
+                } else {
+                    aviso.style.color = "red";
+                    aviso.innerText = "Error al guardar la cancion: " + (datos.mensaje || "");
+                }
+            } catch (error) {
+                aviso.style.color = "red";
+                aviso.innerText = "Error de conexion con el servidor.";
+            }
+
+            btn.disabled = false;
+        }
+    </script>
+</body>
+</html>

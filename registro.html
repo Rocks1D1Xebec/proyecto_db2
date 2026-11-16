@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro - Lyra</title>
+</head>
+<body style="font-family: Arial, sans-serif; padding: 40px; background-color: #f9f9f9;">
+
+    <div style="background-color: #ffffff; border: 1px solid #cccccc; max-width: 350px; margin: 0 auto; padding: 20px;">
+        <h2 style="margin-top: 0; text-align: center;">Crear Cuenta</h2>
+
+        <form onsubmit="hacerRegistro(event)">
+            <p>
+                <label>Nombre completo:</label><br>
+                <input type="text" id="nombre" style="width: 100%; box-sizing: border-box; padding: 6px;" required>
+            </p>
+            <p>
+                <label>Correo electronico:</label><br>
+                <input type="email" id="correo" style="width: 100%; box-sizing: border-box; padding: 6px;" required>
+            </p>
+            <p>
+                <label>Contraseña:</label><br>
+                <input type="password" id="clave" style="width: 100%; box-sizing: border-box; padding: 6px;" required>
+            </p>
+            <button type="submit" style="width: 100%; padding: 8px; background-color: #28a745; color: white; border: none; cursor: pointer;">
+                Registrarse
+            </button>
+        </form>
+
+        <p id="aviso" style="color: red; font-size: 13px; text-align: center;"></p>
+
+        <hr>
+        <p style="font-size: 13px; text-align: center;">
+            Ya tienes cuenta? <a href="/login">Inicia sesion aqui</a><br><br>
+            <a href="/">Volver a la pagina principal</a>
+        </p>
+    </div>
+
+    <script>
+        async function hacerRegistro(e) {
+            e.preventDefault();
+            let nombre = document.getElementById("nombre").value;
+            let correo = document.getElementById("correo").value;
+            let clave = document.getElementById("clave").value;
+
+            try {
+                let respuesta = await fetch("/api/registro", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ nombre: nombre, correo: correo, contraseña: clave })
+                });
+
+                let datos = await respuesta.json();
+
+                if (datos.status === "ok") {
+                    alert("Usuario registrado con exito. Ahora inicia sesion con tus datos.");
+                    window.location.href = "/login";
+                } else {
+                    document.getElementById("aviso").innerText = "No se pudo registrar. El correo o nombre ya existe.";
+                }
+            } catch (error) {
+                document.getElementById("aviso").innerText = "Error al conectar con el servidor.";
+            }
+        }
+    </script>
+
+</body>
+</html>

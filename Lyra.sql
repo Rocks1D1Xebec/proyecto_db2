@@ -1,66 +1,162 @@
-drop database if exists Lyra;
-create database Lyra;
+-- ==============================================================================
+-- PROYECTO BASE DE DATOS II (DB2) - LYRA
+-- USUARIO DE ACCESO REMOTO
+-- ==============================================================================
+create user if not exists 'nyls'@'%' identified by 'nyls123';
+grant all privileges on lyra.* to 'nyls'@'%';
+flush privileges;
 
-use Lyra;
+-- ==============================================================================
+-- ESTRUCTURA DE LA BASE DE DATOS
+-- ==============================================================================
+drop database if exists lyra;
+create database lyra character set utf8mb4 collate utf8mb4_unicode_ci;
+
+use lyra;
 
 create table usuario (
-    id int unsigned primary key auto_increment,
-    nombre varchar(50) unique not null,
-    correo varchar(100) unique not null,
-    contrasena varchar(255) not null,
-    fecha_registro datetime not null default current_timestamp
+  id int unsigned primary key auto_increment,
+  nombre varchar(50) unique not null,
+  correo varchar(100) unique not null,
+  contraseña varchar(255) not null,
+  fecha_registro datetime not null default current_timestamp
 ) engine=innodb;
 
 create table artista (
-    id int unsigned primary key auto_increment,
-    nombre varchar(100) unique not null
+  id int unsigned primary key auto_increment,
+  nombre varchar(100) unique not null
 ) engine=innodb;
 
 create table cancion (
-    id int unsigned primary key auto_increment,
-    titulo varchar(100),
-    id_youtube varchar(50) unique not null,
-    id_artista int unsigned not null,
-    id_usuario_subio int unsigned not null,
-    duracion int unsigned not null,
-    link_r2 text not null,
-    formato varchar(10) not null default 'mp3',
-    fecha_subida datetime not null,
-    constraint fk_cancion_artista foreign key (id_artista) references artista(id),
-    constraint fk_cancion_usuario foreign key (id_usuario_subio) references usuario(id)
+  id int unsigned primary key auto_increment,
+  titulo varchar(100),
+  id_youtube varchar(50) unique not null,
+  id_artista int unsigned not null,
+  id_usuario_subio int unsigned not null,
+  duracion int unsigned not null,
+  link_r2 text not null,
+  formato varchar(10) not null default 'mp3',
+  fecha_subida datetime not null,
+  constraint fk_cancion_artista foreign key (id_artista) references artista(id),
+  constraint fk_cancion_usuario foreign key (id_usuario_subio) references usuario(id)
 ) engine=innodb;
 
 create table lista (
-    id int unsigned primary key auto_increment,
-    nombre varchar(100) not null,
-    id_usuario int unsigned not null,
-    constraint uq_usuario_lista unique (id_usuario, nombre),
-    constraint fk_lista_usuario foreign key (id_usuario) references usuario(id)
+  id int unsigned primary key auto_increment,
+  nombre varchar(100) not null,
+  id_usuario int unsigned not null,
+  constraint uq_usuario_lista unique (id_usuario, nombre),
+  constraint fk_lista_usuario foreign key (id_usuario) references usuario(id)
 ) engine=innodb;
 
 create table detalle_lista (
-    id int unsigned primary key auto_increment,
-    id_cancion int unsigned not null,
-    id_lista int unsigned not null,
-    posicion int unsigned not null,
-    constraint uq_lista_cancion unique (id_lista, id_cancion),
-    constraint fk_detalle_lista_cancion foreign key (id_cancion) references cancion(id),
-    constraint fk_detalle_lista_lista foreign key (id_lista) references lista(id)
+  id int unsigned primary key auto_increment,
+  id_cancion int unsigned not null,
+  id_lista int unsigned not null,
+  posicion int unsigned not null,
+  constraint uq_lista_cancion unique (id_lista, id_cancion),
+  constraint fk_detalle_lista_cancion foreign key (id_cancion) references cancion(id),
+  constraint fk_detalle_lista_lista foreign key (id_lista) references lista(id)
 ) engine=innodb;
 
 create table me_gusta (
-    id int unsigned primary key auto_increment,
-    id_usuario int unsigned not null,
-    id_cancion int unsigned not null,
-    fecha_agregado datetime not null default current_timestamp,
-    constraint uq_usuario_cancion unique (id_usuario, id_cancion),
-    constraint fk_me_gusta_usuario foreign key (id_usuario) references usuario(id),
-    constraint fk_me_gusta_cancion foreign key (id_cancion) references cancion(id)
+  id int unsigned primary key auto_increment,
+  id_usuario int unsigned not null,
+  id_cancion int unsigned not null,
+  fecha_agregado datetime not null default current_timestamp,
+  constraint uq_usuario_cancion unique (id_usuario, id_cancion),
+  constraint fk_me_gusta_usuario foreign key (id_usuario) references usuario(id),
+  constraint fk_me_gusta_cancion foreign key (id_cancion) references cancion(id)
 ) engine=innodb;
 
-insert into usuario (nombre, correo, contrasena) values 
+create table bitacora_canciones (
+  id int unsigned auto_increment primary key,
+  accion varchar(20) not null,
+  id_cancion int unsigned,
+  titulo varchar(100),
+  usuario_subio int unsigned,
+  fecha datetime default current_timestamp
+) engine=innodb;
+
+-- ==============================================================================
+-- TRIGGER DE AUDITORIA
+-- ==============================================================================
+delimiter $$
+create trigger trg_auditoria_subida_cancion
+after insert on cancion
+for each row
+begin
+  insert into bitacora_canciones (accion, id_cancion, titulo, usuario_subio)
+  values ('subida', new.id, new.titulo, new.id_usuario_subio);
+end$$
+delimiter ;
+
+-- ==============================================================================
+-- VISTAS
+-- ==============================================================================
+create or replace view vw_catalogo_canciones as 
+select 
+  c.id as id_cancion,
+  c.titulo, 
+  a.nombre as artista,
+  c.duracion, 
+  c.link_r2, 
+  c.id_youtube, 
+  c.fecha_subida, 
+  u.nombre as subido_por 
+from cancion c
+inner join artista a on c.id_artista = a.id
+inner join usuario u on c.id_usuario_subio = u.id;
+
+create or replace view vw_canciones_populares as 
+select 
+  c.id as id_cancion, 
+  c.titulo, 
+  a.nombre as artista,
+  count(m.id) as total_me_gusta 
+from cancion c
+inner join artista a on c.id_artista = a.id
+left join me_gusta m on c.id = m.id_cancion
+group by c.id, c.titulo, a.nombre
+order by total_me_gusta desc;
+
+-- ==============================================================================
+-- INDICES
+-- ==============================================================================
+create index idx_cancion_titulo on cancion(titulo);
+create index idx_artista_nombre on artista(nombre);
+create index idx_cancion_fecha on cancion(fecha_subida desc);
+
+-- ==============================================================================
+-- PROCEDIMIENTO ALMACENADO
+-- ==============================================================================
+delimiter $$
+create procedure sp_subir_cancion(
+  in p_titulo varchar(100),
+  in p_id_youtube varchar(50),
+  in p_nombre_artista varchar(100),
+  in p_id_usuario int unsigned,
+  in p_duracion int unsigned,
+  in p_link_r2 text
+)
+begin
+  declare v_id_artista int unsigned;
+  select id into v_id_artista from artista where nombre = p_nombre_artista limit 1;
+  if v_id_artista is null then
+    insert into artista (nombre) values (p_nombre_artista);
+    set v_id_artista = last_insert_id();
+  end if;
+  insert into cancion (titulo, id_youtube, id_artista, id_usuario_subio, duracion, link_r2, fecha_subida)
+  values (p_titulo, p_id_youtube, v_id_artista, p_id_usuario, p_duracion, p_link_r2, now());
+end$$
+delimiter ;
+
+-- ==============================================================================
+-- DATOS DE PRUEBA
+-- ==============================================================================
+insert into usuario (nombre, correo, contraseña) values 
 ('Cusi Quispe Wilfredo', 'cusiwachero@gmail.com', 'cusi123'),
-('Senku Ishigami', 'senku@@gmail.com', 'senku123'),
+('Senku Ishigami', 'senku@gmail.com', 'senku123'),
 ('Rocks D. Xebec', 'rocksDxebec@gmail.com', 'good_valley'),
 ('Son Goku', 'goku@gmail.com', 'genkidama'),
 ('Vegeta', 'vegeta@gmail.com', 'insecto'),
