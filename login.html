@@ -2,62 +2,60 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Iniciar Sesion - Lyra</title>
+    <title>Iniciar Sesión - Lyra Music</title>
+    <link rel="stylesheet" href="/lyra.css">
 </head>
-<body style="font-family: Arial, sans-serif; padding: 40px; background-color: #f9f9f9;">
+<body class="body-auth">
 
-    <div style="background-color: #ffffff; border: 1px solid #cccccc; max-width: 350px; margin: 0 auto; padding: 20px;">
-        <h2 style="margin-top: 0; text-align: center;">Iniciar Sesion</h2>
+    <div class="view-container auth-container">
+        <div class="view-header auth-header">
+            <div class="lyra-nav-title auth-title">🎵 Lyra Music</div>
+            <div class="view-description">Ingresa a tu cuenta para gestionar listas y likes</div>
+        </div>
 
-        <form onsubmit="hacerLogin(event)">
-            <p>
-                <label>Correo electronico:</label><br>
-                <input type="email" id="correo" style="width: 100%; box-sizing: border-box; padding: 6px;" required>
-            </p>
-            <p>
-                <label>Contraseña:</label><br>
-                <input type="password" id="clave" style="width: 100%; box-sizing: border-box; padding: 6px;" required>
-            </p>
-            <button type="submit" style="width: 100%; padding: 8px; background-color: #0066cc; color: white; border: none; cursor: pointer;">
-                Ingresar
-            </button>
+        <form onsubmit="iniciarSesion(event)">
+            <div class="form-group">
+                <label class="form-label" for="correo">Correo Electrónico:</label>
+                <input type="email" id="correo" class="form-input" placeholder="ejemplo@correo.com" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="clave">Contraseña:</label>
+                <input type="password" id="clave" class="form-input" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn-submit auth-btn-submit">Iniciar Sesión</button>
         </form>
 
-        <p id="aviso" style="color: red; font-size: 13px; text-align: center;"></p>
+        <p id="aviso" class="auth-aviso"></p>
 
-        <hr>
-        <p style="font-size: 13px; text-align: center;">
-            No tienes cuenta? <a href="/registro">Registrate aqui</a><br><br>
-            <a href="/">Volver a la pagina principal</a>
-        </p>
+        <div class="auth-footer">
+            ¿No tienes cuenta? <a href="/registro" class="auth-link-alt">Regístrate aquí</a>
+            <br><br>
+            <a href="/catalogo" class="auth-link-back">← Volver al Catálogo</a>
+        </div>
     </div>
 
     <script>
-        async function hacerLogin(e) {
+        async function iniciarSesion(e) {
             e.preventDefault();
-            let correo = document.getElementById("correo").value;
-            let clave = document.getElementById("clave").value;
+            let c = document.getElementById("correo").value;
+            let p = document.getElementById("clave").value;
+            let aviso = document.getElementById("aviso");
 
-            try {
-                let respuesta = await fetch("/api/login", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ correo: correo, contraseña: clave })
-                });
+            let res = await fetch("/api/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ correo: c, contraseña: p })
+            });
 
-                let datos = await respuesta.json();
-
-                if (datos.status === "ok") {
-                    localStorage.setItem("usuario", JSON.stringify(datos.usuario));
-                    window.location.href = "/";
-                } else {
-                    document.getElementById("aviso").innerText = "Correo o contraseña incorrectos.";
-                }
-            } catch (error) {
-                document.getElementById("aviso").innerText = "Error al conectar con el servidor.";
+            let datos = await res.json();
+            if (datos.status === "ok") {
+                localStorage.setItem("usuario", JSON.stringify(datos.usuario));
+                document.cookie = "usuario_id=" + datos.usuario.id + "; path=/; max-age=31536000";
+                window.location.href = "/catalogo?u=" + datos.usuario.id;
+            } else {
+                aviso.innerText = datos.mensaje || "Credenciales incorrectas.";
             }
         }
     </script>
-
 </body>
 </html>

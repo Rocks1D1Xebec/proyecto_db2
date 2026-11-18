@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Añadir a Lista - Lyra Music</title>
+    <link rel="stylesheet" href="/lyra.css">
+</head>
+<body>
+
+    <!-- navegacion -->
+    <header class="lyra-nav">
+        <div class="lyra-nav-header">
+            <div>
+                <div class="lyra-nav-title">🎵 Lyra Music</div>
+                <div class="lyra-nav-subtitle">Plataforma Universitaria de Base de Datos II</div>
+            </div>
+            <div class="lyra-nav-user">
+                <span>Usuario: </span><b id="user-display">Invitado</b> | 
+                <a href="/login" id="link-login">Iniciar Sesión</a>
+                <a href="/registro" id="link-reg">Registrarse</a>
+                <a href="#" id="link-logout" style="display:none;" onclick="cerrarSesion()">Cerrar Sesión</a>
+            </div>
+        </div>
+
+        <nav class="lyra-nav-links">
+            <a href="/catalogo" class="active">1. Catálogo</a>
+            <a href="/populares">2. Más Populares</a>
+            <a href="/listas">3. Mis Listas</a>
+            <a href="/subir">4. Subir Música</a>
+        </nav>
+    </header>
+
+    <!-- agregar a lista -->
+    <main class="view-container">
+        <div class="add-back-wrapper">
+            <a href="/catalogo" class="btn-action add-back-btn">
+                ← Volver al Catálogo
+            </a>
+        </div>
+
+        <div class="view-header">
+            <h1 class="view-title">➕ Añadir a Lista de Reproducción</h1>
+            <p class="view-description">Selecciona una de tus listas para guardar la canción con un solo clic (sin códigos ni IDs):</p>
+        </div>
+
+        <!-- BLOQUE_CANCION -->
+
+        <h3 class="add-section-title">Tus Listas Disponibles:</h3>
+        
+        <div class="add-lists-container">
+            <!-- ITEMS_LISTAS -->
+        </div>
+
+        <!-- crear nueva lista -->
+        <div class="add-create-new-box">
+            <div class="add-create-title">¿Deseas guardarla en una nueva lista?</div>
+            <p class="add-create-desc">Crea la lista aquí mismo y la canción se agregará automáticamente:</p>
+            <form onsubmit="crearYAgregar(event)" class="add-create-form">
+                <input type="text" id="nuevo-nombre-lista" class="form-input add-create-input" placeholder="Nombre de la nueva lista..." required>
+                <button type="submit" class="btn-submit add-create-btn">+ Crear y Guardar</button>
+            </form>
+        </div>
+
+        <div id="aviso-agregar" class="add-feedback-banner"></div>
+    </main>
+
+    <!-- reproductor -->
+    <div id="player-bar" class="player-bar">
+        <div class="player-info">
+            <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=400&q=80" alt="Cover" class="player-thumb">
+            <div>
+                <div id="player-tit" class="player-title">Sin canción seleccionada</div>
+                <div id="player-art" class="player-artist">Selecciona una pista para escuchar</div>
+            </div>
+        </div>
+        <div class="player-controls">
+            <button type="button" class="btn-player-nav" onclick="reproducirAnterior()" title="Canción anterior">⏮</button>
+            <audio id="player-audio" class="player-audio-element" controls autoplay></audio>
+            <button type="button" class="btn-player-nav" onclick="reproducirSiguiente()" title="Siguiente canción">⏭</button>
+        </div>
+        <div>
+            <button class="player-close" onclick="cerrarReproductor()">✕ Cerrar</button>
+        </div>
+    </div>
+
+    <!-- modal eliminar lista -->
+    <div id="modal-eliminar-lista" class="lyra-modal-overlay" style="display: none;">
+        <div class="lyra-modal-box">
+            <div class="lyra-modal-icon">🗑️</div>
+            <div class="lyra-modal-title">¿Eliminar lista de reproducción?</div>
+            <div id="modal-eliminar-texto" class="lyra-modal-desc">
+                Esta acción eliminará la lista permanentemente de tu cuenta.
+            </div>
+            <div class="lyra-modal-actions">
+                <button type="button" class="btn-cancel" onclick="cerrarModalEliminar()">Cancelar</button>
+                <button type="button" id="btn-confirmar-eliminar" class="btn-danger" onclick="ejecutarEliminarLista()">Sí, Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let listaCanciones = /* COLA_JSON */ [];
+        let colaVista = listaCanciones;
+        let colaReproduccion = listaCanciones;
+        let indiceActual = -1;
+        let audio = document.getElementById("player-audio");
+        let listaIdAEliminar = null;
+
+        // guardar y recuperar estado del reproductor
+        function guardarEstadoReproductor() {
+            if (!audio || !audio.src || indiceActual < 0) return;
+            let estado = {
+                url: audio.src,
+                titulo: document.getElementById("player-tit").innerText,
+                artista: document.getElementById("player-art").innerText,
+                tiempo: audio.currentTime || 0,
+                pausado: audio.paused,
+                cola: colaReproduccion,
+                indice: indiceActual
+            };
+            sessionStorage.setItem("lyra_player", JSON.stringify(estado));
+        }
+
+        function restaurarEstadoReproductor() {
+            let guardado = sessionStorage.getItem("lyra_player");
+            if (!guardado) return;
+            try {
+                let est = JSON.parse(guardado);
+                if (!est || !est.url) return;
+                colaReproduccion = est.cola || colaVista;
+                indiceActual = est.indice ?? 0;
+                document.getElementById("player-tit").innerText = est.titulo || "";
+                document.getElementById("player-art").innerText = est.artista || "";
+                document.getElementById("player-bar").style.display = "flex";
+                if (audio.src !== est.url) {
+                    audio.src = est.url;
+                    audio.currentTime = est.tiempo || 0;
+                }
+                if (!est.pausado) {
+                    audio.play().catch(() => {});
+                }
+            } catch(e) {}
+        }
+
+        audio.addEventListener("timeupdate", guardarEstadoReproductor);
+        audio.addEventListener("play", guardarEstadoReproductor);
+        audio.addEventListener("pause", guardarEstadoReproductor);
+
+        function cerrarReproductor() {
+            if (audio) {
+                audio.pause();
+                audio.currentTime = 0;
+                audio.removeAttribute("src");
+            }
+            indiceActual = -1;
+            sessionStorage.removeItem("lyra_player");
+            let bar = document.getElementById("player-bar");
+            if (bar) bar.style.display = "none";
+        }
+
+        function reproducirIndice(idx) {
+            if (colaVista && colaVista.length > 0) {
+                colaReproduccion = colaVista;
+            }
+            if (!colaReproduccion || idx < 0 || idx >= colaReproduccion.length) return;
+            indiceActual = idx;
+            let c = colaReproduccion[indiceActual];
+            audio.src = c.url;
+            audio.play();
+            document.getElementById("player-tit").innerText = c.titulo;
+            document.getElementById("player-art").innerText = c.artista;
+            document.getElementById("player-bar").style.display = "flex";
+            guardarEstadoReproductor();
+        }
+
+        function reproducirSiguiente() {
+            if (indiceActual + 1 < colaReproduccion.length) {
+                indiceActual++;
+                let c = colaReproduccion[indiceActual];
+                audio.src = c.url;
+                audio.play();
+                document.getElementById("player-tit").innerText = c.titulo;
+                document.getElementById("player-art").innerText = c.artista;
+                document.getElementById("player-bar").style.display = "flex";
+                guardarEstadoReproductor();
+            } else {
+                mostrarNotificacion("Has llegado al final de la lista.");
+            }
+        }
+
+        function reproducirAnterior() {
+            if (indiceActual - 1 >= 0) {
+                indiceActual--;
+                let c = colaReproduccion[indiceActual];
+                audio.src = c.url;
+                audio.play();
+                document.getElementById("player-tit").innerText = c.titulo;
+                document.getElementById("player-art").innerText = c.artista;
+                document.getElementById("player-bar").style.display = "flex";
+                guardarEstadoReproductor();
+            } else {
+                mostrarNotificacion("Estás en la primera canción.");
+            }
+        }
+
+        // siguiente cancion al terminar
+        audio.onended = function() {
+            reproducirSiguiente();
+        };
+
+        // cambiar de ventana sin cortar la musica
+        async function navegarSinCortar(url, guardarHistorial = true) {
+            try {
+                let res = await fetch(url, { credentials: "same-origin" });
+                if (!res.ok) {
+                    window.location.href = url;
+                    return;
+                }
+                let html = await res.text();
+                let parser = new DOMParser();
+                let docNuevo = parser.parseFromString(html, "text/html");
+
+                let nuevoMain = docNuevo.querySelector("main.view-container");
+                let actualMain = document.querySelector("main.view-container");
+                if (nuevoMain && actualMain) {
+                    actualMain.innerHTML = nuevoMain.innerHTML;
+                }
+
+                let nuevoNav = docNuevo.querySelector("nav.lyra-nav-links");
+                let actualNav = document.querySelector("nav.lyra-nav-links");
+                if (nuevoNav && actualNav) {
+                    actualNav.innerHTML = nuevoNav.innerHTML;
+                }
+
+                if (docNuevo.title) {
+                    document.title = docNuevo.title;
+                }
+
+                let match = html.match(/let\s+listaCanciones\s*=\s*(\[.*\]);/);
+                if (match && match[1]) {
+                    try {
+                        colaVista = JSON.parse(match[1]);
+                    } catch(e) {
+                        colaVista = [];
+                    }
+                } else {
+                    colaVista = [];
+                }
+
+                if (guardarHistorial) {
+                    history.pushState({ url: url }, "", url);
+                }
+                actualizarMenuUsuario();
+                window.scrollTo(0, 0);
+            } catch(e) {
+                window.location.href = url;
+            }
+        }
+
+        document.addEventListener("click", function(e) {
+            let link = e.target.closest("a");
+            if (!link) return;
+            let href = link.getAttribute("href");
+            if (!href || href.startsWith("#") || href.startsWith("http") || href.startsWith("/login") || href.startsWith("/registro")) return;
+            e.preventDefault();
+            navegarSinCortar(href, true);
+        });
+
+        window.addEventListener("popstate", function() {
+            navegarSinCortar(window.location.pathname + window.location.search, false);
+        });
+
+        function filtrarCanciones() {
+            let input = document.getElementById("input-buscador");
+            if (!input) return;
+            let q = input.value.toLowerCase().trim();
+            let tarjetas = document.querySelectorAll(".music-track-card");
+            let visibles = 0;
+            tarjetas.forEach(t => {
+                let tit = (t.querySelector(".music-track-title")?.innerText || "").toLowerCase();
+                let art = (t.querySelector(".music-track-artist")?.innerText || "").toLowerCase();
+                if (!q || tit.includes(q) || art.includes(q)) {
+                    t.style.display = "";
+                    visibles++;
+                } else {
+                    t.style.display = "none";
+                }
+            });
+            let contador = document.getElementById("contador-resultados");
+            if (contador) {
+                contador.innerText = q ? `${visibles} encontrada(s)` : "";
+            }
+        }
+
+        function mostrarNotificacion(mensaje, tipo = "heart") {
+            let toast = document.getElementById("lyra-toast");
+            if (!toast) {
+                toast = document.createElement("div");
+                toast.id = "lyra-toast";
+                document.body.appendChild(toast);
+            }
+            let icono = tipo === "error" ? "⚠️" : (tipo === "heart" ? "❤️" : "✔");
+            toast.className = "lyra-toast " + tipo + " visible";
+            toast.innerHTML = `<span>${icono}</span> <span>${mensaje}</span>`;
+            clearTimeout(window._toastTimer);
+            window._toastTimer = setTimeout(() => { toast.classList.remove("visible"); }, 2800);
+        }
+
+        async function alternarMeGusta(event, idCancion) {
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+            let u = JSON.parse(localStorage.getItem("usuario") || '{"id": 1}');
+            try {
+                let res = await fetch("/api/me-gusta", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id_usuario: u.id, id_cancion: idCancion })
+                });
+                let d = await res.json();
+                if (d.status === "ok") {
+                    let botones = document.querySelectorAll(`.music-track-card[data-id='${idCancion}'] .btn-like`);
+                    if (d.le_gusta) {
+                        botones.forEach(btn => {
+                            btn.classList.add("btn-like-active");
+                            btn.innerText = "❤️";
+                            btn.title = "Quitar de favoritos";
+                        });
+                        mostrarNotificacion("¡Añadida a tus canciones favoritas!", "heart");
+                    } else {
+                        botones.forEach(btn => {
+                            btn.classList.remove("btn-like-active");
+                            btn.innerText = "♡";
+                            btn.title = "Añadir a favoritos";
+                        });
+                        mostrarNotificacion("Quitada de tus canciones favoritas.", "success");
+                    }
+                }
+            } catch(e) {
+                mostrarNotificacion("Error al actualizar favoritos.", "error");
+            }
+        }
+
+        function darLike(idCancion) {
+            alternarMeGusta(null, idCancion);
+        }
+
+        function agregarALista(idCancion) {
+            let u = JSON.parse(localStorage.getItem("usuario") || '{"id": 1}');
+            navegarSinCortar("/agregar-a-lista?id_cancion=" + idCancion + "&u=" + u.id);
+        }
+
+        // funciones de listas y playlists
+        function abrirModalEliminarLista(event, idLista, nombreLista) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            listaIdAEliminar = idLista;
+            document.getElementById("modal-eliminar-texto").innerText = `¿Estás seguro de que deseas eliminar la lista "${nombreLista}"? Todas las canciones se desvincularán de esta lista.`;
+            let btn = document.getElementById("btn-confirmar-eliminar");
+            btn.disabled = false;
+            btn.innerText = "Sí, Eliminar";
+            document.getElementById("modal-eliminar-lista").style.display = "flex";
+        }
+
+        function abrirModalEliminarListaActual(idLista, nombreLista) {
+            abrirModalEliminarLista(null, idLista, nombreLista);
+        }
+
+        function cerrarModalEliminar() {
+            listaIdAEliminar = null;
+            document.getElementById("modal-eliminar-lista").style.display = "none";
+        }
+
+        async function ejecutarEliminarLista() {
+            if (!listaIdAEliminar) return;
+            let u = JSON.parse(localStorage.getItem("usuario") || '{"id": 1}');
+            let btn = document.getElementById("btn-confirmar-eliminar");
+            btn.disabled = true;
+            btn.innerText = "Eliminando...";
+
+            try {
+                let res = await fetch("/api/listas/" + listaIdAEliminar + "/eliminar-lista", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id_usuario: u.id })
+                });
+                let d = await res.json();
+                cerrarModalEliminar();
+                if (d.status === "ok") {
+                    mostrarNotificacion("¡Lista eliminada correctamente!", "success");
+                    setTimeout(() => {
+                        navegarSinCortar("/listas?u=" + u.id);
+                    }, 500);
+                } else {
+                    mostrarNotificacion(d.mensaje || "Error al eliminar la lista.", "error");
+                }
+            } catch(e) {
+                cerrarModalEliminar();
+                mostrarNotificacion("Error de conexión con el servidor.", "error");
+            }
+        }
+
+        let ejecutarEliminarListaActual = ejecutarEliminarLista;
+
+        async function crearLista(e) {
+            e.preventDefault();
+            let u = JSON.parse(localStorage.getItem("usuario") || '{"id": 1}');
+            let nom = document.getElementById("nombre-lista").value.trim();
+            try {
+                let res = await fetch("/api/listas", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id_usuario: u.id, nombre: nom })
+                });
+                let d = await res.json();
+                if (d.status === "ok") {
+                    mostrarNotificacion("¡Lista '" + nom + "' creada con éxito!", "success");
+                    document.getElementById("nombre-lista").value = "";
+                    setTimeout(() => { navegarSinCortar("/listas?u=" + u.id); }, 600);
+                } else {
+                    mostrarNotificacion(d.mensaje || "Error al crear la lista.", "error");
+                }
+            } catch(e) {
+                mostrarNotificacion("Error de conexión al servidor.", "error");
+            }
+        }
+
+        async function eliminarDeLista(idLista, idCancion) {
+            let u = JSON.parse(localStorage.getItem("usuario") || '{"id": 1}');
+            try {
+                let res = await fetch("/api/listas/" + idLista + "/eliminar", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id_cancion: idCancion, id_usuario: u.id })
+                });
+                let d = await res.json();
+                if (d.status === "ok") {
+                    mostrarNotificacion("Canción eliminada de la lista.", "success");
+                    setTimeout(() => {
+                        navegarSinCortar(window.location.pathname + window.location.search, false);
+                    }, 500);
+                } else {
+                    mostrarNotificacion(d.mensaje || "No se pudo quitar la canción.", "error");
+                }
+            } catch(e) {
+                mostrarNotificacion("Error de conexión al servidor.", "error");
+            }
+        }
+
+        async function agregarAEstaLista(idLista, nombreLista) {
+            let idCancion = document.getElementById("id-cancion-seleccionada").value;
+            let aviso = document.getElementById("aviso-agregar");
+            if (!idCancion) return;
+
+            aviso.style.display = "block";
+            aviso.style.background = "rgba(56, 189, 248, 0.15)";
+            aviso.style.border = "1px solid var(--accent-cyan)";
+            aviso.style.color = "var(--accent-cyan)";
+            aviso.innerHTML = "⏳ Añadiendo canción a <b>" + nombreLista + "</b>...";
+
+            try {
+                let res = await fetch("/api/listas/" + idLista + "/agregar", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id_cancion: parseInt(idCancion) })
+                });
+                let d = await res.json();
+                if (d.status === "ok") {
+                    aviso.style.background = "rgba(123, 44, 191, 0.25)";
+                    aviso.style.border = "1px solid var(--accent-glow)";
+                    aviso.style.color = "var(--accent-glow)";
+                    aviso.innerHTML = "✔ <b>¡Canción añadida con éxito a " + nombreLista + "!</b><div style='margin-top: 12px; display: flex; gap: 10px;'><a href='/playlist?id=" + idLista + "' class='btn-submit' style='text-decoration:none; display:inline-block; padding: 8px 16px;'>🎵 Ver Lista</a><a href='/catalogo' class='btn-action' style='text-decoration:none; display:inline-block; padding: 8px 16px;'>← Ir al Catálogo</a></div>";
+                } else {
+                    aviso.style.background = "rgba(248, 113, 113, 0.15)";
+                    aviso.style.border = "1px solid #f87171";
+                    aviso.style.color = "#f87171";
+                    aviso.innerHTML = "Error: " + (d.mensaje || "No se pudo agregar la canción.");
+                }
+            } catch(e) {
+                aviso.style.color = "#f87171";
+                aviso.innerText = "Error de conexión con el servidor.";
+            }
+        }
+
+        async function crearYAgregar(e) {
+            e.preventDefault();
+            let u = JSON.parse(localStorage.getItem("usuario") || '{"id": 1}');
+            let nom = document.getElementById("nuevo-nombre-lista").value.trim();
+            let idCancion = document.getElementById("id-cancion-seleccionada").value;
+            let aviso = document.getElementById("aviso-agregar");
+            if (!nom) return;
+
+            aviso.style.display = "block";
+            aviso.style.background = "rgba(56, 189, 248, 0.15)";
+            aviso.style.border = "1px solid var(--accent-cyan)";
+            aviso.style.color = "var(--accent-cyan)";
+            aviso.innerHTML = "⏳ Creando lista y agregando la canción...";
+
+            try {
+                let res = await fetch("/api/listas", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id_usuario: u.id, nombre: nom })
+                });
+                let d = await res.json();
+                if (d.status === "ok" && d.id) {
+                    let nuevaListaId = d.id;
+                    let res2 = await fetch("/api/listas/" + nuevaListaId + "/agregar", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ id_cancion: parseInt(idCancion) })
+                    });
+                    let d2 = await res2.json();
+                    if (d2.status === "ok") {
+                        aviso.style.background = "rgba(123, 44, 191, 0.25)";
+                        aviso.style.border = "1px solid var(--accent-glow)";
+                        aviso.style.color = "var(--accent-glow)";
+                        aviso.innerHTML = "✔ <b>¡Lista '" + nom + "' creada y canción agregada con éxito!</b><div style='margin-top: 12px; display: flex; gap: 10px;'><a href='/playlist?id=" + nuevaListaId + "' class='btn-submit' style='text-decoration:none; display:inline-block; padding: 8px 16px;'>🎵 Ver Lista</a><a href='/catalogo' class='btn-action' style='text-decoration:none; display:inline-block; padding: 8px 16px;'>← Ir al Catálogo</a></div>";
+                    }
+                } else {
+                    aviso.style.color = "#f87171";
+                    aviso.innerText = "Error al crear la lista: " + (d.mensaje || "");
+                }
+            } catch(e) {
+                aviso.style.color = "#f87171";
+                aviso.innerText = "Error al conectar con el servidor.";
+            }
+        }
+
+        async function subirCancion(e) {
+            e.preventDefault();
+            let u = JSON.parse(localStorage.getItem("usuario") || '{"id": 1}');
+            let enlace = document.getElementById("enlace-youtube").value;
+            let aviso = document.getElementById("aviso-subir");
+            let btn = document.getElementById("btn-subir");
+
+            btn.disabled = true;
+            btn.innerText = "⏳ Procesando canción...";
+            aviso.style.color = "var(--accent-cyan)";
+            aviso.innerText = "Procesando la canción, por favor espera un momento...";
+
+            try {
+                let res = await fetch("/api/subir", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ enlace: enlace, id_usuario: u.id })
+                });
+                let datos = await res.json();
+                if (datos.status === "ok") {
+                    aviso.style.color = "var(--accent-glow)";
+                    aviso.innerText = "✔ Canción añadida con éxito a la biblioteca.";
+                    document.getElementById("enlace-youtube").value = "";
+                    setTimeout(() => { navegarSinCortar("/catalogo"); }, 1500);
+                } else {
+                    aviso.style.color = "#f87171";
+                    aviso.innerText = "Error: " + (datos.mensaje || "no se pudo procesar la canción.");
+                }
+            } catch (error) {
+                aviso.style.color = "#f87171";
+                aviso.innerText = "Error de conexión con el servidor.";
+            }
+
+            btn.disabled = false;
+            btn.innerText = "Subir canción";
+        }
+
+        function cerrarSesion() {
+            cerrarReproductor();
+            localStorage.removeItem("usuario");
+            document.cookie = "usuario_id=1; path=/; max-age=0";
+            window.location.href = "/catalogo";
+        }
+
+        function actualizarMenuUsuario() {
+            let datos = localStorage.getItem("usuario");
+            if (!datos) return;
+            try {
+                let u = JSON.parse(datos);
+                document.getElementById("user-display").innerText = u.nombre;
+                document.getElementById("link-login").style.display = "none";
+                document.getElementById("link-reg").style.display = "none";
+                document.getElementById("link-logout").style.display = "inline";
+                document.cookie = "usuario_id=" + u.id + "; path=/; max-age=31536000";
+                let linkListas = document.querySelector("a[href='/listas']");
+                if (linkListas) linkListas.href = "/listas?u=" + u.id;
+            } catch(e) {}
+        }
+
+        actualizarMenuUsuario();
+        restaurarEstadoReproductor();
+    </script>
+</body>
+</html>

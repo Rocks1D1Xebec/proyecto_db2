@@ -2,67 +2,66 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Registro - Lyra</title>
+    <title>Registro - Lyra Music</title>
+    <link rel="stylesheet" href="/lyra.css">
 </head>
-<body style="font-family: Arial, sans-serif; padding: 40px; background-color: #f9f9f9;">
+<body class="body-auth">
 
-    <div style="background-color: #ffffff; border: 1px solid #cccccc; max-width: 350px; margin: 0 auto; padding: 20px;">
-        <h2 style="margin-top: 0; text-align: center;">Crear Cuenta</h2>
+    <div class="view-container auth-container">
+        <div class="view-header auth-header">
+            <div class="lyra-nav-title auth-title">🎵 Lyra Music</div>
+            <div class="view-description">Crea una cuenta nueva para tus canciones</div>
+        </div>
 
-        <form onsubmit="hacerRegistro(event)">
-            <p>
-                <label>Nombre completo:</label><br>
-                <input type="text" id="nombre" style="width: 100%; box-sizing: border-box; padding: 6px;" required>
-            </p>
-            <p>
-                <label>Correo electronico:</label><br>
-                <input type="email" id="correo" style="width: 100%; box-sizing: border-box; padding: 6px;" required>
-            </p>
-            <p>
-                <label>Contraseña:</label><br>
-                <input type="password" id="clave" style="width: 100%; box-sizing: border-box; padding: 6px;" required>
-            </p>
-            <button type="submit" style="width: 100%; padding: 8px; background-color: #28a745; color: white; border: none; cursor: pointer;">
-                Registrarse
-            </button>
+        <form onsubmit="registrar(event)">
+            <div class="form-group">
+                <label class="form-label" for="nombre">Nombre Completo:</label>
+                <input type="text" id="nombre" class="form-input" placeholder="Tu nombre" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="correo">Correo Electrónico:</label>
+                <input type="email" id="correo" class="form-input" placeholder="ejemplo@correo.com" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="clave">Contraseña:</label>
+                <input type="password" id="clave" class="form-input" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn-submit auth-btn-submit">Registrarme</button>
         </form>
 
-        <p id="aviso" style="color: red; font-size: 13px; text-align: center;"></p>
+        <p id="aviso" class="auth-aviso"></p>
 
-        <hr>
-        <p style="font-size: 13px; text-align: center;">
-            Ya tienes cuenta? <a href="/login">Inicia sesion aqui</a><br><br>
-            <a href="/">Volver a la pagina principal</a>
-        </p>
+        <div class="auth-footer">
+            ¿Ya tienes cuenta? <a href="/login" class="auth-link-alt">Inicia sesión aquí</a>
+            <br><br>
+            <a href="/catalogo" class="auth-link-back">← Volver al Catálogo</a>
+        </div>
     </div>
 
     <script>
-        async function hacerRegistro(e) {
+        async function registrar(e) {
             e.preventDefault();
-            let nombre = document.getElementById("nombre").value;
-            let correo = document.getElementById("correo").value;
-            let clave = document.getElementById("clave").value;
+            let n = document.getElementById("nombre").value;
+            let c = document.getElementById("correo").value;
+            let p = document.getElementById("clave").value;
+            let aviso = document.getElementById("aviso");
 
-            try {
-                let respuesta = await fetch("/api/registro", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ nombre: nombre, correo: correo, contraseña: clave })
-                });
+            let res = await fetch("/api/registro", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nombre: n, correo: c, contraseña: p })
+            });
 
-                let datos = await respuesta.json();
-
-                if (datos.status === "ok") {
-                    alert("Usuario registrado con exito. Ahora inicia sesion con tus datos.");
-                    window.location.href = "/login";
-                } else {
-                    document.getElementById("aviso").innerText = "No se pudo registrar. El correo o nombre ya existe.";
-                }
-            } catch (error) {
-                document.getElementById("aviso").innerText = "Error al conectar con el servidor.";
+            let datos = await res.json();
+            if (datos.status === "ok") {
+                aviso.style.color = "var(--accent-glow)";
+                aviso.innerText = "✔ Cuenta creada con éxito. Redirigiendo...";
+                setTimeout(() => { window.location.href = "/login"; }, 1000);
+            } else {
+                aviso.style.color = "#f87171";
+                aviso.innerText = datos.mensaje || "Error al registrarse.";
             }
         }
     </script>
-
 </body>
 </html>

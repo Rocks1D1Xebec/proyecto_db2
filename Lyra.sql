@@ -1,16 +1,13 @@
--- ==============================================================================
--- PROYECTO BASE DE DATOS II (DB2) - LYRA
--- USUARIO DE ACCESO REMOTO
--- ==============================================================================
+-- usuario de acceso
 create user if not exists 'nyls'@'%' identified by 'nyls123';
 grant all privileges on lyra.* to 'nyls'@'%';
 flush privileges;
 
--- ==============================================================================
--- ESTRUCTURA DE LA BASE DE DATOS
--- ==============================================================================
+-- creacion de base de datos y tablas
 drop database if exists lyra;
-create database lyra character set utf8mb4 collate utf8mb4_unicode_ci;
+create database lyra 
+character set utf8mb4 
+collate utf8mb4_unicode_ci;
 
 use lyra;
 
@@ -53,7 +50,6 @@ create table detalle_lista (
   id int unsigned primary key auto_increment,
   id_cancion int unsigned not null,
   id_lista int unsigned not null,
-  posicion int unsigned not null,
   constraint uq_lista_cancion unique (id_lista, id_cancion),
   constraint fk_detalle_lista_cancion foreign key (id_cancion) references cancion(id),
   constraint fk_detalle_lista_lista foreign key (id_lista) references lista(id)
@@ -78,9 +74,7 @@ create table bitacora_canciones (
   fecha datetime default current_timestamp
 ) engine=innodb;
 
--- ==============================================================================
--- TRIGGER DE AUDITORIA
--- ==============================================================================
+-- trigger de auditoria
 delimiter $$
 create trigger trg_auditoria_subida_cancion
 after insert on cancion
@@ -91,9 +85,7 @@ begin
 end$$
 delimiter ;
 
--- ==============================================================================
--- VISTAS
--- ==============================================================================
+-- vistas
 create or replace view vw_catalogo_canciones as 
 select 
   c.id as id_cancion,
@@ -113,24 +105,24 @@ select
   c.id as id_cancion, 
   c.titulo, 
   a.nombre as artista,
+  c.duracion,
+  c.id_youtube,
+  c.link_r2,
   count(m.id) as total_me_gusta 
 from cancion c
 inner join artista a on c.id_artista = a.id
 left join me_gusta m on c.id = m.id_cancion
-group by c.id, c.titulo, a.nombre
+group by c.id, c.titulo, a.nombre, c.duracion, c.id_youtube, c.link_r2
 order by total_me_gusta desc;
 
--- ==============================================================================
--- INDICES
--- ==============================================================================
+-- indices
 create index idx_cancion_titulo on cancion(titulo);
 create index idx_artista_nombre on artista(nombre);
 create index idx_cancion_fecha on cancion(fecha_subida desc);
 
--- ==============================================================================
--- PROCEDIMIENTO ALMACENADO
--- ==============================================================================
+-- procedimientos almacenados
 delimiter $$
+drop procedure if exists sp_subir_cancion$$
 create procedure sp_subir_cancion(
   in p_titulo varchar(100),
   in p_id_youtube varchar(50),
@@ -151,9 +143,59 @@ begin
 end$$
 delimiter ;
 
--- ==============================================================================
--- DATOS DE PRUEBA
--- ==============================================================================
+delimiter $$
+drop procedure if exists sp_crear_lista$$
+create procedure sp_crear_lista(
+  in p_id_usuario int unsigned,
+  in p_nombre varchar(100)
+)
+begin
+  insert into lista (nombre, id_usuario) values (p_nombre, p_id_usuario);
+  select last_insert_id() as id;
+end$$
+delimiter ;
+
+delimiter $$
+drop procedure if exists sp_eliminar_lista$$
+create procedure sp_eliminar_lista(
+  in p_id_lista int unsigned,
+  in p_id_usuario int unsigned
+)
+begin
+  if exists (select 1 from lista where id = p_id_lista and id_usuario = p_id_usuario) then
+    delete from detalle_lista where id_lista = p_id_lista;
+    delete from lista where id = p_id_lista and id_usuario = p_id_usuario;
+  end if;
+end$$
+delimiter ;
+
+delimiter $$
+drop procedure if exists sp_agregar_cancion_lista$$
+create procedure sp_agregar_cancion_lista(
+  in p_id_lista int,
+  in p_id_cancion int
+)
+begin
+  if not exists (select 1 from detalle_lista where id_lista = p_id_lista and id_cancion = p_id_cancion) then
+    insert into detalle_lista (id_lista, id_cancion)
+    values (p_id_lista, p_id_cancion);
+  end if;
+end$$
+delimiter ;
+
+delimiter $$
+drop procedure if exists sp_eliminar_cancion_lista$$
+create procedure sp_eliminar_cancion_lista(
+  in p_id_lista int,
+  in p_id_cancion int
+)
+begin
+  delete from detalle_lista 
+  where id_lista = p_id_lista and id_cancion = p_id_cancion;
+end$$
+delimiter ;
+
+-- datos de prueba
 insert into usuario (nombre, correo, contraseña) values 
 ('Cusi Quispe Wilfredo', 'cusiwachero@gmail.com', 'cusi123'),
 ('Senku Ishigami', 'senku@gmail.com', 'senku123'),
@@ -212,10 +254,10 @@ insert into lista (nombre, id_usuario) values
 ('Psicología y Manipulación Fina', 10),
 ('Bebiendo Cola Casera con Senku', 10);
 
-insert into detalle_lista (id_lista, id_cancion, posicion) values
-(1, 6, 1), (1, 7, 2), (2, 4, 1), (2, 10, 2), (3, 2, 1), (4, 2, 1), (4, 4, 2), (5, 5, 1), (7, 1, 1), 
-(7, 9, 2), (9, 1, 1), (9, 9, 2), (11, 4, 1), (13, 4, 1), (15, 3, 1), (15, 8, 2), (17, 8, 1),
-(18, 3, 1), (18, 8, 2), (19, 10, 1), (19, 2, 2);
+insert into detalle_lista (id_lista, id_cancion) values
+(1, 6), (1, 7), (2, 4), (2, 10), (3, 2), (4, 2), (4, 4), (5, 5), (7, 1), 
+(7, 9), (9, 1), (9, 9), (11, 4), (13, 4), (15, 3), (15, 8), (17, 8),
+(18, 3), (18, 8), (19, 10), (19, 2);
 
 insert into me_gusta (id_usuario, id_cancion, fecha_agregado) values
 (1, 6, '2026-10-25 10:00:00'), (1, 7, '2026-10-25 10:05:00'), (1, 1, '2026-10-25 10:10:00'),
